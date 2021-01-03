@@ -1,0 +1,24 @@
+before_script:
+  - echo "$USER"
+  - echo "${CI_PROJECT_NAME}.${CI_COMMIT_REF_NAME}.${CI_COMMIT_SHA}"
+  - echo "${CI_BUILDS_DIR}/${CI_PROJECT_NAME}/${CI_COMMIT_REF_NAME}/${CI_COMMIT_SHA}"
+  - pwd
+  - docker info
+
+variables:
+  TARGET_DIR: /builds/${CI_PROJECT_NAME}/${CI_COMMIT_REF_NAME}/${CI_COMMIT_SHA}
+  GIT_CLONE_PATH: '$CI_BUILDS_DIR/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME/$CI_COMMIT_SHA'
+  IMAGE_NAME: postgres
+  SERVICE_NAME: postgres
+
+stages:
+  - upload
+
+docker processing:
+  stage: upload
+  tags:
+    - shared-upload
+  script:
+    - echo "${DOCKER_LOGIN_PASSWORD}" | docker login docker.sath.com --username ${DOCKER_LOGIN_UID} --password-stdin
+    - (docker build --no-cache -t docker.sath.com/"${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}" .)
+    - docker push docker.sath.com/""${CI_PROJECT_NAME}":${CI_COMMIT_REF_NAME}"
